@@ -14,6 +14,7 @@ cors = CORS(app)
 socketio = SocketIO(app)
 actions = []
 alerts = []
+sensors = {'hiveTemp': 82.6, 'beeCount1': 0, 'beeCount2': 0, 'beeCount3': 0, 'beeCount4': 0}
 tropo = TropoService(logging)
 spark = SparkService(logging)
 
@@ -164,6 +165,26 @@ def get_webhook(webhookName):
 def delete_webhook(webhookName):
     spark.deleteWebhook(webhookName)
     return ('', 204)
+
+
+@app.route('/sensors', methods=['GET'])
+def get_sensors():
+    sensorList = []
+    for sensorKey in sensors.keys():
+        sensorList.append({'name': sensorKey, 'value': sensors[sensorKey]})
+    return Response(json.dumps(sensorList), mimetype='application/json')
+
+
+@app.route('/sensors/<string:name>', methods=['GET'])
+def get_sensor(name):
+    return Response(json.dumps({'name': name, 'value': sensors[name]}), mimetype='application/json')
+
+
+@app.route('/sensors/<string:name>', methods=['PUT'])
+def update_sensor(name):
+    sensor = request.json
+    sensors[sensor['name']] = sensor['value']
+    return Response(json.dumps(sensor), mimetype='application/json')
 
 
 # route to create an event
